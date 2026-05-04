@@ -1,6 +1,6 @@
 {
   "name": "@eyewallmarkets/openclaw-storm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Storm prediction-market arbitrage feed + watchlist push alerts for OpenClaw agents. Free tier exposes the public spread tape; Pro adds personal watchlists with push alerts; Edge bundles the full read API via @eyewallmarkets/storm-mcp.",
   "type": "module",
   "main": "./index.js",

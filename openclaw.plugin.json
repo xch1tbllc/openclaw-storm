@@ -10,7 +10,11 @@
       "storm_event_show",
       "storm_bind_init",
       "storm_bind_status",
-      "storm_me_tier"
+      "storm_me_tier",
+      "storm_watchlist_pin",
+      "storm_watchlist_unpin",
+      "storm_inbox_pull",
+      "storm_install_mcp"
     ]
   },
   "activation": {
