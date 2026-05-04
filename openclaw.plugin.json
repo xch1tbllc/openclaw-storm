@@ -1,0 +1,34 @@
+{
+  "id": "openclaw-storm",
+  "name": "Storm",
+  "description": "Cross-venue prediction-market arbitrage feed from Eyewall Markets. Free tools surface the public spread tape; bind to a Storm account for personal watchlist push alerts (Pro) or the full read API (Edge).",
+  "contracts": {
+    "tools": [
+      "storm_feed_top",
+      "storm_feed_topical",
+      "storm_calibration_venue",
+      "storm_event_show",
+      "storm_bind_init",
+      "storm_bind_status",
+      "storm_me_tier"
+    ]
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "baseUrl": {
+        "type": "string",
+        "description": "Override the Storm API base URL. Defaults to https://eyewallmarkets.com.",
+        "default": "https://eyewallmarkets.com"
+      },
+      "skillToken": {
+        "type": "string",
+        "description": "Bearer token issued by /skill/bind-confirm. Persisted by the user after they complete the email-link bind flow."
+      }
+    }
+  }
+}
