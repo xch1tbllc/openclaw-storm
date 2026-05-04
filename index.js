@@ -262,42 +262,29 @@ export default definePluginEntry({
 
     api.registerTool({
       name: "storm_install_mcp",
-      description: "Edge-only. Generate the openclaw command to register the @eyewallmarkets/storm-mcp server in this gateway. The MCP server gives the agent 7 deeper read-only tools (storm_list_events, storm_get_event, storm_list_spreads, storm_get_market, storm_list_venues, storm_get_alerts_inbox, storm_ack_alerts) for power-user / programmatic-feed use cases. The tool returns the exact `openclaw mcp set storm '<json>'` command — agent should execute it, then ask the user to restart the gateway. Returns tier_required for non-Edge users.",
+      description: "Edge-only. Generate the openclaw command to register the @eyewallmarkets/storm-mcp server in this gateway. The MCP server gives the agent 7 deeper read-only tools (storm_list_events, storm_get_event, storm_list_spreads, storm_get_market, storm_list_venues, storm_get_alerts_inbox, storm_ack_alerts) for power-user / programmatic-feed use cases. The tool fetches the user's api_key from /skill/api-key and returns the fully-populated `openclaw mcp set storm '<json>'` command — agent should execute it, then restart the gateway. Returns tier_required for non-Edge users.",
       parameters: SCHEMAS.empty,
       async execute() {
-        // First confirm Edge tier and pull the api_key. /skill/me/tier
-        // doesn't expose the api_key; we'd need a new endpoint to read it
-        // safely. For this slice, instruct the agent to fetch it from
-        // /account in the browser. (Future: add a /skill/api-key endpoint
-        // gated to Edge tier.)
-        const me = await stormFetch(api, "/skill/me/tier", { skillToken: "required" });
-        if (!me?.ok) return asText(me);
-        if (me.tier !== "edge") {
-          return asText({
-            ok: false,
-            reason: "tier_required",
-            required_tier: "edge",
-            current_tier: me.tier || "free",
-            message: "The full storm-mcp server is an Edge feature. Upgrade at https://eyewallmarkets.com/pricing.",
-          });
-        }
+        // Fetch the api_key in one call. /skill/api-key is Edge-gated
+        // server-side, so a non-Edge user gets the structured 403 here
+        // and we surface that directly without doing a separate tier
+        // probe.
+        const keyResp = await stormFetch(api, "/skill/api-key", { skillToken: "required" });
+        if (!keyResp?.ok) return asText(keyResp);
         const config = api.pluginConfig || api.config || {};
         const baseUrl = (config.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
-        // The actual api_key has to come from the user (or a future
-        // /skill/api-key endpoint). For now, return the command template
-        // with a placeholder the user fills in.
         const mcpJson = {
           command: "npx",
           args: ["-y", "@eyewallmarkets/storm-mcp"],
           env: {
-            STORM_API_KEY: "<paste your stk_… key from " + baseUrl + "/account>",
+            STORM_API_KEY: keyResp.api_key,
             STORM_BASE_URL: baseUrl,
           },
         };
         const cmd = `openclaw mcp set storm '${JSON.stringify(mcpJson)}'`;
         return asText({
           ok: true,
-          message: "To install the storm-mcp server, copy your api_key from " + baseUrl + "/account, replace the placeholder in STORM_API_KEY, and run:",
+          message: "Run this command to register the storm-mcp server:",
           command: cmd,
           followup: "After running the command, restart the gateway with: `openclaw gateway restart` (or `docker compose restart openclaw-gateway` if running in a container). Then call any of the 7 storm-mcp tools (storm_list_events, storm_get_event, etc.) directly.",
           mcp_config: mcpJson,
