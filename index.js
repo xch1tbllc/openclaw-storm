@@ -61,10 +61,10 @@ const SCHEMAS = {
   bind_init: {
     type: "object",
     additionalProperties: false,
-    required: ["email", "openclaw_user_id"],
+    required: ["email", "bind_external_user_id"],
     properties: {
       email: { type: "string", description: "User's email address." },
-      openclaw_user_id: { type: "string", description: "Stable identifier for the OpenClaw user — typically the agent runtime's user id." },
+      bind_external_user_id: { type: "string", description: "Stable identifier for the OpenClaw user — typically the agent runtime's user id. Sent to Storm as the bind_external_user_id field." },
     },
   },
   watchlist_pin: {
@@ -188,7 +188,7 @@ export default definePluginEntry({
       async execute(_id, params) {
         const result = await stormFetch(api, "/skill/bind-init", {
           method: "POST",
-          body: { email: params.email, openclaw_user_id: params.openclaw_user_id },
+          body: { email: params.email, bind_external_user_id: params.bind_external_user_id },
         });
         if (result.ok) {
           return asText({
